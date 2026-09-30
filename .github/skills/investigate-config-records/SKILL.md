@@ -13,6 +13,8 @@ accept optional field names and reuse the selected session target.
 1. Check the object's metadata through bounded metadata SOQL supported by
    `salesforce/run_soql_query`, such as `EntityDefinition` or `FieldDefinition`. Confirm that
    requested fields exist and choose only those needed to explain the configuration.
+   When metadata consumers are needed to explain behavior, inspect the relevant
+   local source or use [retrieve-metadata](../retrieve-metadata/SKILL.md) for that scope.
 2. If a record-read capability is available, use bounded filters and deterministic ordering
    where supported. Start with at most 5 rows; expand toward 20 only when the question requires
    it and explain the expansion. Report unavailable capabilities without substituting CLI calls.

@@ -26,8 +26,11 @@ exposed by the `salesforce` MCP server; inspect its actual tool schemas.
    `EntityDefinition` or `FieldDefinition`, where the tool and API support them. Check the real
    `run_soql_query` schema before choosing API options. Use `useToolingApi: true` for Tooling
    API metadata queries and constrain `FieldDefinition` to the selected entity. There is no
-   general describe tool in this base. If the available metadata cannot establish the fields or relationships required
-   for a record query, report that limitation instead of inventing the object contract.
+   general runtime describe tool in this base. When component definitions are needed,
+   use [retrieve-metadata](../retrieve-metadata/SKILL.md) after establishing identity;
+   that skill owns local writes and completion checks. If available metadata cannot
+   establish the fields or relationships required for a record query, report that
+   limitation instead of inventing the object contract.
 5. Treat observations as specific to the retrieval time and current access. Disclose permission
    gaps and incomplete results. Stop if target identity changes during the investigation.
 

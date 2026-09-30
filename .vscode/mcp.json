@@ -34,7 +34,7 @@
         "--orgs",
         "${input:salesforce_org}",
         "--tools",
-        "run_soql_query",
+        "run_soql_query,retrieve_metadata",
         "--no-telemetry"
       ]
     }

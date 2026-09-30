@@ -14,6 +14,9 @@ org already selected in the session or the user's explicit target.
    supported by `salesforce/run_soql_query`, such as `EntityDefinition` or `FieldDefinition`.
    Confirm field and relationship names before using them. Explain any inaccessible
    definitions or package details rather than assuming their behavior.
+   If the question needs full component definitions, read the relevant local source
+   or use [retrieve-metadata](../retrieve-metadata/SKILL.md) for the minimum current
+   metadata needed. State whether the evidence is local or freshly retrieved.
 2. If records are needed and a read tool exists, select a few fields that answer the question.
    Start with at most 5 rows; increase toward 20 only when useful and explain the reason. Use
    filters and ordering supported by the actual schema, and preserve pagination limitations.

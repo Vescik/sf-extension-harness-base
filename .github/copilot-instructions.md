@@ -8,8 +8,10 @@ project root; `force-app/` is available for scoped metadata snapshots used in re
 ## Scope and evidence
 
 - Use only the configured `ado` and `salesforce` MCP servers for external systems.
-  The base agents perform reads. Do not create or update work items, publish wiki
-  pages, change records, execute Apex, run tests, or deploy metadata.
+  The base agents perform reads. Metadata retrieval may write scoped local source
+  files through the [retrieve-metadata skill](skills/retrieve-metadata/SKILL.md).
+  Do not create or update work items, publish wiki pages, change records, execute
+  Apex, run tests, or deploy metadata.
 - Establish the ADO organization/project or Salesforce target before reading it.
   Reuse explicit, unambiguous scope already supplied in the conversation. Ask only
   for missing scope that the available tools cannot resolve. Never silently widen it.
@@ -21,8 +23,9 @@ project root; `force-app/` is available for scoped metadata snapshots used in re
 - Read relevant local `force-app/` metadata when available. Establish which org and
   retrieval time it represents before comparing it with live results. File presence
   does not prove current org state, and an absent local file does not prove org absence.
-  The scaffold starts empty. Restoring it does not add agent terminal, retrieve, or
-  deploy permissions; manual retrieval is documented in the setup guide.
+  The scaffold starts empty. Use the retrieval skill when current metadata is needed
+  for a requested live review; an offline review does not require org access.
+  Retrieval and report writing do not authorize fixes to reviewed configuration.
 - Use bounded searches and queries. Report source identity, retrieval time, filters,
   pagination, access restrictions, and missing evidence when material to the answer.
   A sample or an empty visible result does not establish universal behavior or absence.
@@ -36,6 +39,8 @@ project root; `force-app/` is available for scoped metadata snapshots used in re
 - Return analysis in chat by default. Save a sanitized report only when requested,
   under ignored `output/` unless the user specifies another destination. Do not
   automatically create caches, work-item folders, registries, or approval records.
+  A minimal temporary manifest under `output/retrieval/` is allowed as input to a
+  requested metadata retrieval; follow that skill's local-file protections.
 - Keep permission to read distinct from permission to publish or mutate. A request
   to change this template authorizes the relevant local edits. Preserve unrelated
   changes and explain any changed tool access. Publishing requires its own request.
