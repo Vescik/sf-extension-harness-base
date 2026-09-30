@@ -1,12 +1,14 @@
 ---
 name: retrieve-metadata
-description: Retrieve selected Salesforce metadata into the local SFDX project for review.
+description: Prepare a scoped manual retrieval command and inspect the resulting Salesforce metadata for review.
 argument-hint: "org=<alias> components=<Type:Name,...> or manifest=<path>"
 agent: config-investigator
 ---
 
 Use the [retrieve-metadata skill](../skills/retrieve-metadata/SKILL.md).
-Resolve the exact org and component scope from the request. For named components,
-prepare a small manifest; the MCP tool does not accept component names directly.
-Protect existing local work, retrieve through MCP, and report actual completion and
-gaps. A retrieve can update local files but never changes configuration in the org.
+Verify the selected MCP-bound org and resolve the exact component scope. Protect
+existing local work, then prepare a narrow `sf project retrieve start` command with
+explicit metadata names or a vetted manifest, the target alias, and `--wait 10`.
+The admin runs the command manually; these agents have no retrieval or terminal
+tool. After the admin supplies the result, inspect available files and report
+completion evidence and gaps. Do not claim retrieval from command preparation.

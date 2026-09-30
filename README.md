@@ -4,33 +4,35 @@ A small, independent starting point for admin teams that review Salesforce orgs
 with GitHub Copilot in VS Code and Azure DevOps. Adapted from `sf-extension-harness`.
 
 The package contains Markdown agents, prompts, and skills, a Salesforce DX project,
-and direct configuration for two vendor MCP servers. There is no package-owned
-runtime to install or maintain.
+and two MCP connections: Azure DevOps and the custom Salesforce review server from
+`sf-extension-harness`. The Salesforce server runs locally with Node.js and Python.
 
 ## Included
 
 | Agent | Purpose | Entry points |
 | --- | --- | --- |
 | `ado-analyst` | Find requirements, work items, and wiki documentation | `/search-ado`, `/fetch-ado-item` |
-| `config-investigator` | Investigate objects and records, retrieve metadata, and inventory local source | `/investigate-object`, `/investigate-config-records`, `/retrieve-metadata`, `/inventory-force-app` |
+| `config-investigator` | Investigate objects and records, prepare metadata retrieval, and inventory local source | `/investigate-object`, `/investigate-config-records`, `/retrieve-metadata`, `/inventory-force-app` |
 | `admin-reviewer` | Review selected org configuration or an offline snapshot | `/review-org` |
 | `workspace-maintainer` | Adapt the local package for a team | Select the agent and describe the change |
 
 Nine skills provide the procedures: `search-ado`, `fetch-ado-item`, `org-discovery`,
 `investigate-object`, `investigate-config-records`, `retrieve-metadata`,
 `inventory-force-app`, `review-org`, and `maintain-workspace`.
-External operations are reads. Metadata retrieval writes scoped local source files;
+External operations are reads. An admin runs the prepared metadata retrieval command
+to write scoped local source files;
 analysis stays in chat unless a report is requested. `output/` is ignored by Git.
 
-The Salesforce connection exposes bounded SOQL and metadata retrieval. The ADO
-connection supports project-scoped wiki and work-item reads. The package adds no
+The Salesforce connection exposes verified org identity, installed packages, object
+contracts, bounded SOQL, limits, and query plans. Metadata retrieval remains a manual
+Salesforce CLI operation. The ADO connection supports project-scoped wiki and work-item reads. The package adds no
 terminal access, deployment, record-write, or test-execution tools to its agents.
 
 ## Admin review
 
 For a live review, select an org and the components or behavior to examine. The
-reviewer checks identity, reads the relevant evidence, and can retrieve the minimum
-needed metadata. For an offline review, supply local files or a manifest; an org
+reviewer checks identity, reads the relevant evidence, and prepares a scoped retrieval
+command when metadata XML is needed. For an offline review, supply local files or a manifest; an org
 connection is not required and unknown source provenance remains explicit.
 
 The [admin checklist](.github/skills/review-org/references/admin-checklist.md) covers
@@ -84,16 +86,24 @@ These are examples; replace their project, ID, object, and alias with your own.
 - Reusable task procedures: [.github/skills/](.github/skills/).
 - Short user entry points: [.github/prompts/](.github/prompts/).
 - The two MCP registrations: [.vscode/mcp.json](.vscode/mcp.json).
+- Salesforce runtime and local policy: [SETUP.md](SETUP.md).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for adding team instructions and capabilities.
 No company names, org IDs, package namespaces, or credentials are preconfigured.
 
 ## Removed from the source package
 
-Knowledge MCP and its stores, custom Salesforce proxies, scripts, hooks, schemas,
-evals, test infrastructure, CI workflows, development delivery workflows, delivery
-work items, and business-specific configuration. The SFDX project and its
-standard editor support are retained.
+Knowledge MCP and its stores, hooks, general harness scripts and validators, evals,
+CI workflows, development delivery workflows, delivery work items, and business-specific
+configuration. Only the six Salesforce MCP runtime modules, required policies and
+schemas, locked Python dependencies, and focused offline tests are restored. The
+SFDX project and its standard editor support are retained.
+
+The Salesforce core was copied from the source worktree based on `e329fa59e76b`
+(including its local policy-module edits). Packaging changes add a probe for both
+Python dependencies and point installation errors to the smaller runtime lockfile.
+The same seven-tool contract is retained. The policy and verifier modules are import
+dependencies; no deployment, consent, or Knowledge workflow is registered by this base.
 This repository has its own history, separate from the source harness. Fork or clone
 it as the starting point for your team's review workspace.
 

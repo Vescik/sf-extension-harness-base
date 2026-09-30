@@ -8,8 +8,9 @@ project root; `force-app/` is available for scoped metadata snapshots used in re
 ## Scope and evidence
 
 - Use only the configured `ado` and `salesforce` MCP servers for external systems.
-  The base agents perform reads. Metadata retrieval may write scoped local source
-  files through the [retrieve-metadata skill](skills/retrieve-metadata/SKILL.md).
+  The base agents perform reads. The [retrieve-metadata skill](skills/retrieve-metadata/SKILL.md)
+  prepares a scoped manual Salesforce CLI command; an admin runs it to write local
+  metadata files. The Salesforce MCP has no retrieval tool.
   Do not create or update work items, publish wiki pages, change records, execute
   Apex, run tests, or deploy metadata.
 - Establish the ADO organization/project or Salesforce target before reading it.
@@ -51,6 +52,10 @@ project root; `force-app/` is available for scoped metadata snapshots used in re
 
 Agent tool lists narrow the tools presented by the host. These instructions are
 behavioral guidance, not a server authorization mechanism. This template contains
-no enforcement hooks or custom MCP proxy. Organization permissions and the chosen
-host's tool controls remain responsible for actual access. Do not claim runtime
-verification from a file review alone.
+the custom Salesforce review MCP from `sf-extension-harness`. It validates live org
+identity, binds one alias per session, and exposes only seven bounded read tools.
+It includes no enforcement hooks. ADO agent allowlists are client-side selections;
+its upstream server includes other operations. Account permissions and host tool
+controls still govern access. Raw SOQL results can contain business data; select
+only necessary fields and sanitize saved reports. Do not claim runtime verification
+from a file review alone.

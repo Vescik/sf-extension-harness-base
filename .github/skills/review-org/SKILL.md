@@ -19,8 +19,8 @@ recommendations advisory; review does not authorize implementation.
 - **Live org:** reuse the explicitly selected target and establish its identity with
   [org-discovery](../org-discovery/SKILL.md). Use bounded read queries and, where XML
   is needed, [retrieve-metadata](../retrieve-metadata/SKILL.md) for the minimum
-  selected components. Follow that skill for local write scope and asynchronous
-  retrieval handling. Do not silently replace an inaccessible org with another.
+  selected components. That skill prepares a command for an admin to run manually;
+  continue metadata analysis only when its result and source files are available. Do not silently replace an inaccessible org with another.
 - **Comparison:** identify each source and its observation time separately. Compare
   only overlapping components; do not present an old or mixed snapshot as live state.
 

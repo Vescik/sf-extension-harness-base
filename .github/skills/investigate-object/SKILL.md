@@ -10,16 +10,21 @@ Follow the [shared instructions](../../copilot-instructions.md) and
 [org-discovery](../org-discovery/SKILL.md). Require one object API name and a question; use the
 org already selected in the session or the user's explicit target.
 
-1. Inspect the object's available metadata and relevant fields through bounded metadata SOQL
-   supported by `salesforce/run_soql_query`, such as `EntityDefinition` or `FieldDefinition`.
-   Confirm field and relationship names before using them. Explain any inaccessible
-   definitions or package details rather than assuming their behavior.
+1. Call `salesforce/review_object_contract` with the exact `objectApiName` and inspect
+   `facts.object`. Confirm field and relationship names before using them; do not treat
+   null or contested properties as established values. Read describe-only traits from
+   `sourceExclusive.rest` with their access context. Use `review_installed_packages`
+   with `{}` when package identity is relevant, preserving its configured namespace scope.
+   Explain inaccessible definitions or package details rather than assuming behavior.
    If the question needs full component definitions, read the relevant local source
    or use [retrieve-metadata](../retrieve-metadata/SKILL.md) for the minimum current
    metadata needed. State whether the evidence is local or freshly retrieved.
-2. If records are needed and a read tool exists, select a few fields that answer the question.
-   Start with at most 5 rows; increase toward 20 only when useful and explain the reason. Use
-   filters and ordering supported by the actual schema, and preserve pagination limitations.
+2. If records are needed, use `salesforce/review_soql_query` with `query` and optional
+   `useToolingApi` only. Select a few fields that answer the question and include an explicit
+   `LIMIT`: start with at most 5 rows and increase toward 20 only when useful, explaining
+   the reason. Use filters and ordering supported by the verified schema. The MCP runs
+   the query verbatim and returns unredacted rows in `facts.soqlQuery.records`; select
+   only useful values for the answer. Follow discovery's envelope and truncation checks.
 3. Follow relationships only when they materially answer the question, with at most 5 relevant
    lookup edges and depth 2. Stop when required read capabilities are unavailable.
 4. Separate metadata facts, record observations, and inferred business meaning. A small sample

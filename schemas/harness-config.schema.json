@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sf-extension-harness-base:harness-config.schema.json",
+  "title": "Local Salesforce review configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "salesforce", "safety"],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "salesforce": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["orgs", "review"],
+      "properties": {
+        "orgs": {
+          "description": "Optional configured aliases. An empty list permits the facade to prove the selected authenticated alias live. Configured aliases must be unique; the runtime rejects duplicate matches.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["alias", "environment"],
+            "properties": {
+              "alias": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$"
+              },
+              "environment": {
+                "description": "Use dev, uat, stage or prod for new entries. The source runtime also recognizes development and production as legacy aliases. This label does not grant write access.",
+                "enum": ["dev", "uat", "stage", "prod", "development", "production"]
+              },
+              "expectedInstanceHost": {
+                "type": "string",
+                "pattern": "^(?:[A-Za-z0-9][A-Za-z0-9-]*--[A-Za-z0-9][A-Za-z0-9-]*\\.sandbox\\.my\\.salesforce\\.com|[A-Za-z0-9][A-Za-z0-9-]*\\.scratch\\.my\\.salesforce\\.com|[A-Za-z0-9][A-Za-z0-9-]*\\.develop\\.my\\.salesforce\\.com|[A-Za-z0-9][A-Za-z0-9-]*\\.my\\.salesforce\\.com|[A-Za-z0-9][A-Za-z0-9-]*\\.salesforce\\.com)$"
+              },
+              "expectedOrganizationId": {
+                "$ref": "#/$defs/organizationId"
+              }
+            },
+            "dependentRequired": {
+              "expectedInstanceHost": ["expectedOrganizationId"],
+              "expectedOrganizationId": ["expectedInstanceHost"]
+            }
+          }
+        },
+        "review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "enabled",
+            "deniedOrganizationIds",
+            "apiVersion",
+            "allowedPackageNamespaces",
+            "allowedObjectApiNames",
+            "maxFieldsPerObject"
+          ],
+          "properties": {
+            "enabled": {
+              "description": "The facade refuses to start unless this is true.",
+              "type": "boolean"
+            },
+            "deniedOrganizationIds": {
+              "description": "Org IDs blocked regardless of the selected alias. The facade compares the first 15 characters during identity verification.",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/organizationId"
+              }
+            },
+            "apiVersion": {
+              "type": "string",
+              "pattern": "^[0-9]{2}\\.0$"
+            },
+            "allowedPackageNamespaces": {
+              "description": "Scope for the installed-packages review tool: an empty list selects no packages; [\"*\"] selects all; otherwise use explicit namespace names. This is not a restriction on composed SOQL.",
+              "oneOf": [
+                {"const": ["*"]},
+                {
+                  "type": "array",
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z][A-Za-z0-9]{0,14}$"
+                  }
+                }
+              ]
+            },
+            "allowedObjectApiNames": {
+              "description": "Scope for object contracts and parsed FROM targets in composed SOQL and query plans. A wildcard permits every target. This is not a complete field or relationship authorization boundary.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(\\*|[A-Za-z][A-Za-z0-9_]{0,79})$"
+              }
+            },
+            "maxFieldsPerObject": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowScopedEnumeration"],
+      "properties": {
+        "allowScopedEnumeration": {
+          "description": "Allow review_configured_orgs to list only the aliases and environment labels configured in this file.",
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "organizationId": {
+      "type": "string",
+      "pattern": "^00D[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$"
+    }
+  }
+}

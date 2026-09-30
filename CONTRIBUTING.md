@@ -33,7 +33,8 @@ For reliable discovery from a particular agent, link the instruction file there.
    `user-invocable: false` on the skill to avoid duplicate slash commands.
 4. Update the README and setup when entry points or required capabilities change.
 
-The base includes an SFDX project, two external connectors, and read-only analysis. Teams can build
+The base includes an SFDX project, the ADO connector, our Salesforce review MCP,
+and read-only analysis. Teams can build
 specialized layers in their own repository, but must explicitly define any new
 access or write workflow and verify the corresponding host controls.
 
@@ -49,6 +50,16 @@ Check Git's diff for unintended changes, local credentials, or captured business
 Run the host checks in [SETUP.md](SETUP.md) after changing tool configuration.
 Report static checks, MCP discovery, and authenticated host checks separately.
 
-This base intentionally ships no validation runner, test suite, or dependency
-manifest. Use your team's tooling when automated checks become useful; do not add
-runtime machinery solely to maintain a few Markdown and JSON files.
+The custom Salesforce MCP has a focused offline test suite. After installing the
+locked dependencies from [SETUP.md](SETUP.md), run:
+
+```sh
+python -m unittest discover -s tests
+node --check scripts/start_salesforce_mcp.mjs
+```
+
+Use the configured virtual environment's Python. Tests use a fake CLI and local HTTP
+fixtures; they do not authenticate or contact Salesforce. Run them after runtime or
+policy changes. Keep dependency versions and hashes in `requirements-mcp.lock`.
+Do not restore Knowledge, deployment workflows, or unrelated validation machinery
+as incidental dependencies of a review feature.

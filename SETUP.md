@@ -2,165 +2,189 @@
 
 ## Prerequisites
 
-- VS Code with GitHub Copilot Chat and access to custom agents, prompts, skills, and MCP.
-- Node.js 22.12 or later on the 22.x line, or Node.js 24 LTS, with `npx` available
-  on the PATH used by VS Code.
-- Access to one Azure DevOps organization and project.
-- Salesforce CLI, with the intended org already authenticated under an explicit
-  alias or username. Perform sign-in yourself using your team's normal procedure.
+- VS Code with GitHub Copilot Chat and support for custom agents, prompts, skills, and MCP.
+- Node.js 22.12+ on the 22.x line or Node.js 24 LTS, with `node` and `npx` on VS Code's PATH.
+- Python 3.11+ with `venv` and `pip`.
+- Salesforce CLI 2.136.8+ on the 2.x line and one authenticated org with an explicit alias.
+  Sign in yourself using your team's normal procedure; a username is not a valid
+  MCP alias. Aliases contain 1–80 letters, digits, dots, underscores, or hyphens and
+  start with a letter or digit.
+- Access to an Azure DevOps organization and project when using the ADO agent.
 
-Open this repository folder directly. Do not open its parent workspace. Parent
-repository customization discovery is disabled in [.vscode/settings.json](.vscode/settings.json).
-The repository root contains the SFDX project. There is no package-level `npm install`,
-Python environment, build, or setup script. The first MCP startup uses `npx` to
-download the vendor servers.
+Open this repository folder directly. Parent customization discovery is disabled
+in [.vscode/settings.json](.vscode/settings.json). This folder is also the SFDX root.
+No Salesforce data or local authorization is included in the template.
 
-The input prompts in this configuration use VS Code's extension-host MCP support.
-For an Agent Host session, replace the two `${input:...}` arguments in your team's
-copy with explicit non-secret org identifiers and remove `inputs`, then verify that
-both servers are available. VS Code does not forward interactive-input servers to
-Agent Host; see the [MCP configuration reference](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
+## Install the Salesforce MCP runtime
+
+The server is the custom review MCP from `sf-extension-harness`. It uses six local
+scripts and hash-pinned Python dependencies; it does not launch `@salesforce/mcp`.
+There is no package-level npm install. ADO starts through its pinned npm package.
+
+On macOS or Linux, run from the repository root:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install --require-hashes -r requirements-mcp.lock
+cp config/harness.example.json config/harness.local.json
+```
+
+On Windows PowerShell:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --require-hashes -r requirements-mcp.lock
+Copy-Item config/harness.example.json config/harness.local.json
+```
+
+Edit the ignored `config/harness.local.json` and set `salesforce.review.enabled`
+to `true` when ready to connect. The generic example starts disabled. Configure:
+
+| Setting | Meaning |
+| --- | --- |
+| `salesforce.orgs` | Optional alias/environment entries; an empty list permits an explicitly selected authenticated alias after live identity proof. This list is not an org allowlist. |
+| `salesforce.review.deniedOrganizationIds` | Org IDs to deny before serving tools. |
+| `salesforce.review.apiVersion` | REST API version, initially `67.0`; keep the SFDX project and manifest compatible with your org. |
+| `salesforce.review.allowedObjectApiNames` | Nonempty scope for object contracts and parsed SOQL/EXPLAIN `FROM` targets, or `["*"]` for all. |
+| `salesforce.review.allowedPackageNamespaces` | `["*"]` for all installed packages, specific namespace names, or `[]` to omit package discovery. |
+| `salesforce.review.maxFieldsPerObject` | Object-contract field bound, from 1 to 500. |
+| `safety.allowScopedEnumeration` | Allows listing configured aliases/environments when `true`; never lists all locally authenticated orgs. Defaults to `false`. |
+
+Optional entries in `salesforce.orgs` contain `alias` and `environment` (`dev`, `uat`,
+`stage`, or `prod`). `expectedInstanceHost` and `expectedOrganizationId` can pin the
+identity; supply both together using independently verified values. The server still
+checks live identity. Configured labels do not replace live environment evidence.
+The [local configuration schema](schemas/harness-config.schema.json) provides editor
+validation; runtime checks remain in the server.
+
+The launcher searches `SALESFORCE_MCP_PYTHON`, the repository `.venv`, `py -3`,
+`python3`, then `python`, probing both `requests` and `jsonschema`. An optional
+`SALESFORCE_MCP_PYTHON` value must be an executable path, not a shell command.
+Missing or disabled configuration blocks startup before Salesforce access.
+Do not commit local config, tokens, passwords, session exports, or retrieved business data.
 
 ## Start the two connections
 
-1. Open [.vscode/mcp.json](.vscode/mcp.json) in VS Code and start `ado`.
-   Enter the organization slug, not a full URL, project name, or token. Complete the
-   vendor's interactive sign-in. The project is supplied in chat or prompt arguments;
-   it is not a server command-line argument.
-2. Start `salesforce` and enter exactly one authenticated Salesforce alias or username.
-   Avoid default-target sentinels, comma-separated lists, or wildcard org selection.
-3. Select the matching custom agent. Include the ADO project and organization, or
-   Salesforce alias, in the task context. Reuse that scope for the conversation.
-4. When changing organization or org, update the corresponding input value and
-   restart the affected MCP server. If the host keeps the old value, rename that
-   input's `id` and its matching `${input:...}` reference together so it prompts
-   again. Establish the new scope before further reads.
+1. Open [.vscode/mcp.json](.vscode/mcp.json) and start `ado`. Enter the organization
+   slug, not a URL, project name, or token. Complete its interactive sign-in. Supply
+   the project in chat; it is not a server startup argument.
+2. Start `salesforce` and enter exactly one authenticated CLI alias. Do not use a
+   username, wildcard, comma-separated list, or default-target sentinel. Startup
+   reads CLI authorization and proves the live host and Org ID before tool discovery.
+   It supports sandbox, production, scratch, and Developer Edition targets.
+3. Select the relevant agent and supply the same org alias or ADO project in the task.
+   The Salesforce server binds one alias for its entire session; tools have no
+   per-call org, username, or workspace-directory argument.
+4. To change the target, update the corresponding VS Code input and restart that
+   MCP server. If the host caches the value, change the input's `id` and matching
+   `${input:...}` reference together to prompt again. Verify the new identity.
 
-Authentication belongs to the vendor tools and the host. Do not store tokens,
-passwords, or auth exports in this repository. The two input values are identifiers,
-not credentials.
+These prompt inputs use VS Code's extension-host MCP support. For a host that does
+not support interactive inputs, replace the `${input:...}` arguments in your team's
+copy with explicit non-secret identifiers, remove `inputs`, and verify discovery.
 
-## Prepare local metadata for an admin review
+## Tool surface
 
-Install the recommended Salesforce and XML extensions. Open this folder directly
-so the Salesforce extension finds [sfdx-project.json](sfdx-project.json).
-The restored project retains source API version `67.0`; select a compatible version
-for your target org if required, keeping the project and manifest aligned.
+| Server | Implementation | Surface |
+| --- | --- | --- |
+| `ado` | `@azure-devops/mcp@2.10.0` | `work-items`, `wiki`, and `search` domains |
+| `salesforce` | `node scripts/start_salesforce_mcp.mjs --mode review --org <alias>` | Seven custom read tools below |
 
-Use `/retrieve-metadata` with the already authenticated org's explicit alias and
-named components, or an existing manifest. The skill verifies identity, inspects
-local files, prepares a small manifest when needed, and calls `retrieve_metadata`.
-For example:
+The ADO analyst selects `search_wiki`, `search_workitem`, `wiki`, and `wit_work_item`.
+Wiki and work-item operations use an `action` argument. These are agent selections;
+the upstream ADO server also includes write operations. Another agent can expose a
+different selection. Account permissions and host approval controls still apply.
+
+| Salesforce tool | Arguments | Purpose |
+| --- | --- | --- |
+| `review_org_identity` | `{}` | Verify the bound target and return identity evidence. |
+| `review_installed_packages` | `{}` | Read packages within configured namespace scope. |
+| `review_configured_orgs` | `{}` | Read locally configured aliases/environments when enabled. |
+| `review_object_contract` | `{"objectApiName":"Account"}` | Reconcile REST describe and Tooling API field evidence. |
+| `review_soql_query` | `{"query":"SELECT Id FROM Account LIMIT 5","useToolingApi":false}` | Read bounded SOQL results; `useToolingApi` is optional. |
+| `org_limits` | `{}` | Read org limits. |
+| `explain_query` | `{"query":"SELECT Id FROM Account LIMIT 5","useToolingApi":false}` | Read query plans when requested; `useToolingApi` is optional. |
+
+The first five tools return structured evidence including target, time, status,
+completeness, and warnings. Limits and query plans return diagnostic objects, not
+those evidence envelopes. Agents must distinguish `VERIFIED`, `MISMATCH`,
+`INCOMPLETE`, and `BLOCKED` and keep unresolved properties explicit.
+
+The object allowlist checks object contracts and parsed `FROM` targets in SOQL and
+query plans. It is not a complete field or relationship authorization boundary. The
+namespace list scopes package discovery only. SOQL returns actual record values
+and is not a data-redaction service. Use only
+necessary fields, filters, and a small explicit `LIMIT`; sanitize reports. A sample
+cannot prove org-wide behavior. Object-contract reconciliation marks contested
+properties instead of silently preferring one source. The runtime bounds responses
+and rejects unsupported calls. It exposes no metadata retrieval, deploy, test,
+Apex-execution, record-write, terminal, or arbitrary HTTP tool.
+
+## Prepare metadata for review
+
+The complete SFDX scaffold remains available, with source API `67.0`. Install the
+recommended Salesforce and XML extensions. `/retrieve-metadata` verifies the selected
+org with our MCP, examines relevant local files, and prepares a narrow Salesforce CLI
+command or manifest for an admin to run manually. It does not execute retrieval.
 
 ```text
 /retrieve-metadata org=team-sandbox components=Flow:Case_Routing,PermissionSet:Support_User
 ```
 
-Replace the sample alias and names with the intended target and scope. The MCP tool
-accepts an absolute `manifest` path or a `sourceDir` array, never both. There is no
-component-name or output-directory parameter. A generated manifest goes under
-ignored `output/retrieval/`; retrieved metadata goes into the SFDX source tree.
-Review relevant existing files before retrieval: the tool can overwrite or merge
-local source, and `ignoreConflicts: false` only protects tracked conflicts where
-source tracking is supported. Preserve local work if its safety cannot be established.
-The skill never calls retrieve without an explicit selector.
-
-After completion, check component messages and resulting files. The current vendor
-tool waits up to ten minutes. A timeout or uncertain result stays incomplete: the
-registered core `resume_tool_operation` does not handle retrieves and is excluded
-from the bundled agents. Do not blindly retry or infer success from partial files.
-An admin can check the operation using their normal Salesforce tooling.
-
-For manual retrieval, edit [manifest/package.xml](manifest/package.xml) to select
-components needed for the review. The inherited `CustomObject:*` entry is a broad starter, not a complete
-org manifest. Include other required metadata types and prefer named components
-when the review is narrower. Then run this manually from the project root:
+An example manual command, from this project root, is:
 
 ```sh
-sf project retrieve start --manifest manifest/package.xml --target-org YOUR_ORG_ALIAS
+sf project retrieve start --metadata 'Flow:Case_Routing' --metadata 'PermissionSet:Support_User' --target-org team-sandbox --wait 10
 ```
 
-Replace `YOUR_ORG_ALIAS` with the intended target. This reads org metadata into the
-local project; review existing local files before retrieval because they can change.
-Check the CLI result and pass the target, retrieval time, component scope, and any
-gaps to the investigator. Do not treat a partial retrieve as a complete org snapshot.
-The [Salesforce retrieve reference](https://developer.salesforce.com/docs/platform/salesforce-cli-reference/guide/cli_reference_project_retrieve_start.html)
-describes supported flags and local conflict behavior.
+Replace the sample names and alias with the intended scope. Alternatively, use one
+reviewed manifest selector:
 
-The bundled agents can read the resulting files and use only MCP for external
-calls. The investigator and reviewer can retrieve within the selected scope; an
-explicitly offline review performs no live calls. The scratch-org
-definition is retained for teams that need a disposable environment, and the Apex
-Replay Debugger launch configuration is available for existing logs. No org is
-created, retrieved, or changed by opening this template.
+```sh
+sf project retrieve start --manifest output/retrieval/review.xml --target-org team-sandbox --wait 10
+```
 
-## Tool surface
+Prepare that manifest first. Do not blindly run the inherited `manifest/package.xml`:
+its `CustomObject:*` entry is a broad starter and does not select every metadata type.
+Review existing local source before retrieval because the CLI can merge or overwrite
+files. Preserve unrelated changes; do not bypass conflicts with force flags.
 
-The top-level npm versions are pinned in the MCP configuration:
+After the command finishes, check the CLI result and resulting files. Supply the
+org identity, retrieval time, selected components, and any failures to the agent.
+A timeout, failed component, or partial file tree remains incomplete; inspect the
+reported operation with your normal Salesforce tooling before retrying. A manifest
+and a prepared command are not evidence that retrieval ran successfully.
 
-| Server | Package | Configuration |
-| --- | --- | --- |
-| `ado` | `@azure-devops/mcp@2.10.0` | `work-items`, `wiki`, and `search` domains |
-| `salesforce` | `@salesforce/mcp@0.30.15` | One explicit org; `run_soql_query,retrieve_metadata`; telemetry disabled |
+Use `/inventory-force-app` to inspect the local snapshot, then `/review-org` for a
+scoped review. An explicitly offline review requires no live MCP calls. Scratch-org
+configuration and Apex Replay Debugger support remain available, but opening this
+package does not create or modify an org.
 
-The ADO analyst exposes four read tools: `search_wiki`, `search_workitem`, `wiki`,
-and `wit_work_item`. In this version, wiki and work-item operations use an `action`
-argument on the consolidated tool. Earlier individual tool names are not compatible.
+## Verification
 
-The Salesforce investigator and admin reviewer expose `get_username`,
-`run_soql_query`, and `retrieve_metadata`. Queries require `query`,
-`usernameOrAlias`, and the absolute workspace `directory`; `useToolingApi` selects
-Tooling API queries. Retrieve uses the same target/root plus exactly one selector
-and `ignoreConflicts: false`.
+Run local checks using the installed environment:
 
-The server also registers the always-on core `resume_tool_operation` tool. It supports
-other operation types, not retrieves; neither bundled Salesforce agent exposes it.
-This allowlist is client-side selection, not a server-side authorization boundary.
+```sh
+.venv/bin/python -m unittest discover -s tests
+node --check scripts/start_salesforce_mcp.mjs
+```
 
-Object analysis can use bounded `EntityDefinition` and `FieldDefinition` queries
-when the authenticated user has access. This does not expose all metadata properties.
-For an identity check, query `Organization` and report the returned ID and sandbox
-flag. `IsSandbox = false` alone does not prove that the org is production.
+On Windows use `.\.venv\Scripts\python.exe` for the first command. The tests drive
+the actual Python server and Node launcher against a fake CLI and localhost HTTP
+fixtures. They check identity, tool contracts, bounds, refresh, and startup policy
+without authenticating or contacting Salesforce.
 
-The ADO server domains include write tools, even though the bundled analyst does
-not select them. Neither upstream server is wrapped by this package. Use the supplied
-agents and review host tool selections; another agent or user configuration can
-expose a different tool set. Actual access is governed by the account's permissions.
-Do not broadly auto-approve server tools.
+For your team's authenticated VS Code setup:
 
-## Verify in your host
+- Check discovery of four agents, seven prompts, nine skills, and both MCP servers.
+  Seven skills use `user-invocable: false` because their prompts supply slash commands.
+- Fetch a known ADO item and verify its project/ID; try a bounded wiki search.
+- Verify the selected Salesforce alias/Org ID, inspect a known object contract, and
+  run a minimal query. Check status, completeness, filters, and observation time.
+- Manually retrieve one named component into a clean local source location, inspect
+  the CLI result and files, and run inventory plus a scoped review.
+- Check offline review and requested report saving. Permission failures, partial
+  evidence, and unsupported checks must remain visible; no report is saved by default.
 
-- Check that all four agents, seven prompts, and nine skills are discovered without
-  customization errors. Seven skills are hidden from the slash menu because their
-  prompt files already provide the corresponding command.
-- Check that both MCP servers start and that every tool named in the agent files
-  exists. Do not replace missing tool names with a server-wide wildcard.
-- With `ado-analyst`, fetch a known work item in the intended project. Verify its
-  ID and project in the result. Try a bounded wiki search in the same project.
-- With `config-investigator`, verify the selected org identity, then inspect a known
-  object with a bounded query. Check alias, Org ID, filters, and returned fields.
-- Retrieve one known, named component into a clean local source location. Verify
-  the manifest, target Org ID, tool result, and returned files. Do not test by widening
-  to all metadata. Check that deploy, tests, and resume are absent from agent tool lists.
-- Run `/inventory-force-app` on that component and check its logical name and path.
-  Run `/review-org` with an explicit question, then test an offline snapshot review.
-- Request a saved review and inspect the Markdown report: scope, source/time,
-  evidence, findings, open items, and unverified checks must agree with the observations.
-  Reports stay in chat when saving was not requested; local modifications are preserved.
-- Check that permission failures, partial retrieval, and unsupported checks remain
-  visible and do not produce an org-wide safety verdict.
-
-A JSON/frontmatter check or unauthenticated MCP handshake verifies configuration
-and discovery only. Your authenticated VS Code, ADO, and Salesforce checks are still
-required before treating the package as verified for your team.
-
-## Vendor references
-
-Configuration follows the [Azure DevOps MCP documentation](https://github.com/microsoft/azure-devops-mcp)
-and [Salesforce DX MCP documentation](https://github.com/salesforcecli/mcp).
-See the [core Salesforce tool reference](https://developer.salesforce.com/docs/platform/sfdx-dev/guide/sfdx-dev-mcp-use-core-tools.html)
-for available operations; exact retrieve/resume behavior above was checked against
-the pinned package's published implementation.
-See [VS Code custom agents](https://code.visualstudio.com/docs/agent-customization/custom-agents)
-and [Agent Skills](https://code.visualstudio.com/docs/agent-customization/agent-skills)
-for host behavior. Recheck tool names and startup discovery when changing versions.
+Passing offline tests does not establish authenticated VS Code, ADO, or live-org
+acceptance. Keep those verification results separate.

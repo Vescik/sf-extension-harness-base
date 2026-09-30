@@ -14,8 +14,9 @@ Follow the [shared instructions](../../copilot-instructions.md). Use the
    documentation. Keep common rules in the shared instructions and task procedures in skills;
    prompts should remain short entry points to those procedures.
 3. Keep this base limited to the `ado` and `salesforce` MCP integrations and read-only external
-   workflows. Do not add a runtime, scripts, hooks, another integration, or a development workflow
-   as an incidental part of maintaining the package.
+   workflows. The existing Salesforce MCP runtime, its locked dependencies, schemas, and
+   focused tests support those reads. Do not add unrelated scripts, hooks, integrations,
+   or development workflows as an incidental part of maintaining the package.
 4. Check edited frontmatter, relative links, agent references, and tool names against the files
    and configured integrations. Check JSON syntax when configuration changes. A static check
    does not prove that VS Code loads a customization or that a live MCP connection works.

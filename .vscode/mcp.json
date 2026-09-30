@@ -8,7 +8,7 @@
     {
       "id": "salesforce_org",
       "type": "promptString",
-      "description": "One Salesforce CLI alias or username already authenticated on this machine"
+      "description": "One Salesforce CLI alias already authenticated on this machine (not a username)"
     }
   ],
   "servers": {
@@ -27,15 +27,14 @@
     },
     "salesforce": {
       "type": "stdio",
-      "command": "npx",
+      "command": "node",
+      "cwd": "${workspaceFolder}",
       "args": [
-        "-y",
-        "@salesforce/mcp@0.30.15",
-        "--orgs",
-        "${input:salesforce_org}",
-        "--tools",
-        "run_soql_query,retrieve_metadata",
-        "--no-telemetry"
+        "scripts/start_salesforce_mcp.mjs",
+        "--mode",
+        "review",
+        "--org",
+        "${input:salesforce_org}"
       ]
     }
   }

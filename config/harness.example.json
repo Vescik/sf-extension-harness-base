@@ -1,0 +1,18 @@
+{
+  "$schema": "../schemas/harness-config.schema.json",
+  "schemaVersion": 1,
+  "salesforce": {
+    "orgs": [],
+    "review": {
+      "enabled": false,
+      "deniedOrganizationIds": [],
+      "apiVersion": "67.0",
+      "allowedPackageNamespaces": ["*"],
+      "allowedObjectApiNames": ["*"],
+      "maxFieldsPerObject": 500
+    }
+  },
+  "safety": {
+    "allowScopedEnumeration": false
+  }
+}
