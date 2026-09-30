@@ -1,0 +1,15 @@
+# Local reports and authentication state must not travel with the template.
+output/
+.cache/
+.sf/
+.sfdx/
+.env
+.env.*
+*.local.json
+*.local.md
+*.log
+node_modules/
+.venv/
+__pycache__/
+.DS_Store
+Thumbs.db

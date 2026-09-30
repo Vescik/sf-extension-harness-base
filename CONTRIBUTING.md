@@ -1,0 +1,50 @@
+# Adapt the base for your team
+
+Keep the base small. Put shared rules in
+[.github/copilot-instructions.md](.github/copilot-instructions.md), task procedures
+in a skill, and only role/tool selection in an agent. Prompt files should delegate
+to a skill instead of repeating its procedure.
+
+## Add team context
+
+Create a focused `.github/instructions/<team>.instructions.md` file with VS Code
+instruction frontmatter, for example:
+
+```yaml
+---
+applyTo: "**"
+---
+```
+
+Below it, document the actual domain vocabulary, source systems, and working rules.
+Use a narrower file pattern where appropriate. Do not copy old vendor assumptions,
+credentials, production records, or another team's process into the shared base.
+For reliable discovery from a particular agent, link the instruction file there.
+
+## Add a capability
+
+1. Define the task and evidence needed. Extend an existing skill when it already
+   owns that procedure; otherwise add `.github/skills/<name>/SKILL.md` with `name`
+   and `description` frontmatter.
+2. Add a custom agent only for a distinct role or tool set. Select explicit MCP read
+   tools from the connected server's actual schema. Keep procedures in the skill.
+3. Add a prompt when a short command helps users. Match its `agent` to an existing
+   agent and link its skill. When prompt and skill share a name, set
+   `user-invocable: false` on the skill to avoid duplicate slash commands.
+4. Update the README and setup when entry points or required capabilities change.
+
+The base includes two external connectors and read-only analysis. Teams can build
+specialized layers in their own repository, but must explicitly define any new
+access or write workflow and verify the corresponding host controls.
+
+## Review and validation
+
+Check JSON syntax, YAML frontmatter, relative links, prompt-to-agent routing, and
+actual MCP tool names. Search for references to files or tools that you remove.
+Check Git's diff for unintended changes, local credentials, or captured business data.
+Run the host checks in [SETUP.md](SETUP.md) after changing tool configuration.
+Report static checks, MCP discovery, and authenticated host checks separately.
+
+This base intentionally ships no validation runner, test suite, or dependency
+manifest. Use your team's tooling when automated checks become useful; do not add
+runtime machinery solely to maintain a few Markdown and JSON files.

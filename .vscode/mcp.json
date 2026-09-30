@@ -1,0 +1,42 @@
+{
+  "inputs": [
+    {
+      "id": "ado_org",
+      "type": "promptString",
+      "description": "Azure DevOps organization slug (the name after dev.azure.com/)"
+    },
+    {
+      "id": "salesforce_org",
+      "type": "promptString",
+      "description": "One Salesforce CLI alias or username already authenticated on this machine"
+    }
+  ],
+  "servers": {
+    "ado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp@2.10.0",
+        "${input:ado_org}",
+        "-d",
+        "work-items",
+        "wiki",
+        "search"
+      ]
+    },
+    "salesforce": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@salesforce/mcp@0.30.15",
+        "--orgs",
+        "${input:salesforce_org}",
+        "--tools",
+        "run_soql_query",
+        "--no-telemetry"
+      ]
+    }
+  }
+}
