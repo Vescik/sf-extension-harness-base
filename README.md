@@ -1,10 +1,11 @@
 # Salesforce & Azure DevOps Base
 
-A small, independent starting point for teams that use GitHub Copilot in VS Code
-with Azure DevOps and Salesforce. Adapted from `sf-extension-harness`.
+A small, independent starting point for admin teams that review Salesforce orgs
+with GitHub Copilot in VS Code and Azure DevOps. Adapted from `sf-extension-harness`.
 
-The package contains Markdown agents, prompts, and skills, plus direct configuration
-for two vendor MCP servers. There is no package-owned runtime to install or maintain.
+The package contains Markdown agents, prompts, and skills, a Salesforce DX project,
+and direct configuration for two vendor MCP servers. There is no package-owned
+runtime to install or maintain.
 
 ## Included
 
@@ -22,6 +23,20 @@ requested; `output/` is ignored by Git.
 The Salesforce connection exposes bounded SOQL, including available Tooling API
 schema information. It does not provide a full object describe or metadata retrieval
 workflow. The ADO connection supports project-scoped wiki and work-item reads.
+
+## Salesforce DX project
+
+The repository root is the SFDX project root. The complete source project's scaffold
+is restored: [sfdx-project.json](sfdx-project.json), [force-app/](force-app/),
+[manifest/package.xml](manifest/package.xml), [.forceignore](.forceignore),
+[scratch-org definition](config/project-scratch-def.json), and the Apex Replay
+Debugger launch configuration. VS Code recommends the Salesforce and XML extensions.
+
+The source tree contains empty component directories, as in the original package;
+it does not contain a snapshot of any org. Admins can retrieve scoped metadata into
+it for local review. The starter manifest currently selects all `CustomObject`
+members, not all org metadata; tailor it to the review. API version `67.0` is retained
+from the source project. See [SETUP.md](SETUP.md) for manual retrieval.
 
 ## Start
 
@@ -53,7 +68,8 @@ No company names, org IDs, package namespaces, or credentials are preconfigured.
 
 Knowledge MCP and its stores, custom Salesforce proxies, scripts, hooks, schemas,
 evals, test infrastructure, CI workflows, development/design/review/QA/release agents,
-application source, delivery work items, and project-specific configuration.
+delivery work items, and business-specific configuration. The SFDX project and its
+standard editor support are retained.
 The new repository starts with its own local history and no remote.
 
 Tool lists and instructions are not server-side authorization. See the access limits

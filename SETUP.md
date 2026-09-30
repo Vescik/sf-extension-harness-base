@@ -11,8 +11,9 @@
 
 Open this repository folder directly. Do not open its parent workspace. Parent
 repository customization discovery is disabled in [.vscode/settings.json](.vscode/settings.json).
-There is no `npm install`, Python environment, build, SFDX project, or setup script
-for this package. The first MCP startup uses `npx` to download the vendor servers.
+The repository root contains the SFDX project. There is no package-level `npm install`,
+Python environment, build, or setup script. The first MCP startup uses `npx` to
+download the vendor servers.
 
 The input prompts in this configuration use VS Code's extension-host MCP support.
 For an Agent Host session, replace the two `${input:...}` arguments in your team's
@@ -38,6 +39,36 @@ Agent Host; see the [MCP configuration reference](https://code.visualstudio.com/
 Authentication belongs to the vendor tools and the host. Do not store tokens,
 passwords, or auth exports in this repository. The two input values are identifiers,
 not credentials.
+
+## Prepare local metadata for an admin review
+
+Install the recommended Salesforce and XML extensions. Open this folder directly
+so the Salesforce extension finds [sfdx-project.json](sfdx-project.json).
+The restored project retains source API version `67.0`; select a compatible version
+for your target org if required, keeping the project and manifest aligned.
+
+Use the already authenticated org's explicit alias and edit
+[manifest/package.xml](manifest/package.xml) to select the components needed for
+the review. The inherited `CustomObject:*` entry is a broad starter, not a complete
+org manifest. Include other required metadata types and prefer named components
+when the review is narrower. Then run this manually from the project root:
+
+```sh
+sf project retrieve start --manifest manifest/package.xml --target-org YOUR_ORG_ALIAS
+```
+
+Replace `YOUR_ORG_ALIAS` with the intended target. This reads org metadata into the
+local project; review existing local files before retrieval because they can change.
+Check the CLI result and pass the target, retrieval time, component scope, and any
+gaps to the investigator. Do not treat a partial retrieve as a complete org snapshot.
+The [Salesforce retrieve reference](https://developer.salesforce.com/docs/platform/salesforce-cli-reference/guide/cli_reference_project_retrieve_start.html)
+describes supported flags and local conflict behavior.
+
+The bundled agents can read the resulting files. They still use only MCP for
+external calls; automatic metadata retrieval is not configured. The scratch-org
+definition is retained for teams that need a disposable environment, and the Apex
+Replay Debugger launch configuration is available for existing logs. No org is
+created, retrieved, or changed by opening this template.
 
 ## Tool surface
 

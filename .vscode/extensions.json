@@ -1,3 +1,7 @@
 {
-  "recommendations": ["github.copilot-chat"]
+  "recommendations": [
+    "github.copilot-chat",
+    "salesforce.salesforcedx-vscode-expanded",
+    "redhat.vscode-xml"
+  ]
 }

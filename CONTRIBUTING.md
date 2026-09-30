@@ -33,9 +33,13 @@ For reliable discovery from a particular agent, link the instruction file there.
    `user-invocable: false` on the skill to avoid duplicate slash commands.
 4. Update the README and setup when entry points or required capabilities change.
 
-The base includes two external connectors and read-only analysis. Teams can build
+The base includes an SFDX project, two external connectors, and read-only analysis. Teams can build
 specialized layers in their own repository, but must explicitly define any new
 access or write workflow and verify the corresponding host controls.
+
+Keep `sfdx-project.json`, `manifest/package.xml`, and the source directory structure
+coherent when adapting the Salesforce project. Local retrieved metadata is evidence
+from a named org and time, not proof of the current state of every environment.
 
 ## Review and validation
 
