@@ -94,7 +94,8 @@ Knowledge MCP and its stores, custom Salesforce proxies, scripts, hooks, schemas
 evals, test infrastructure, CI workflows, development delivery workflows, delivery
 work items, and business-specific configuration. The SFDX project and its
 standard editor support are retained.
-The new repository starts with its own local history and no remote.
+This repository has its own history, separate from the source harness. Fork or clone
+it as the starting point for your team's review workspace.
 
 Tool lists and instructions are not server-side authorization. See the access limits
 and host verification steps in [SETUP.md](SETUP.md).
